@@ -46,11 +46,9 @@
 </if>
 
 <if @stacktrace@ not nil>
-
   <p>
     Here is a detailed dump of what took place at the time of the error, which may assist a programmer in tracking down the problem:
   </p>
-
   <blockquote><pre>@stacktrace@</pre></blockquote>
 </if>
 <else>
