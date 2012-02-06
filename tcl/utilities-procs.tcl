@@ -2205,6 +2205,10 @@ ad_proc -public ad_returnredirect {
       	util_user_message -message $message -html
     }
 
+    if { [util_exploit_url_p $target_url] } {
+	error "Redirection to invalid URL: '[ns_quotehtml $target_url]'"
+    }
+
     if { [util_complete_url_p $target_url] } {
         # http://myserver.com/foo/bar.tcl style - just pass to ns_returnredirect
         # check if the hostname matches the current host
@@ -2223,8 +2227,6 @@ ad_proc -public ad_returnredirect {
             set url [util_current_location][util_current_directory]$target_url
         }
     }
-
-#ad_return_complaint 1 "ad_returnredirect: $url"
 
     #Ugly workaround to deal with IE5.0 bug handling multipart/form-data using 
     #Meta Refresh page instead of a redirect. 
@@ -2303,6 +2305,73 @@ ad_proc -public util_get_user_messages {
         template::multirow append $multirow $message
     }
 }
+
+ad_proc -public util_exploit_url_p {{} string} {
+  Determine whether string is an exploit URL, i.e.
+  wheteher it contains strange or forbidden characters.
+} {
+    return 0
+
+    set string [ns_urldecode $string]
+    ns_log Notice "util_exploit_url_p: Checking URL for exploit attemts: '$string'"
+
+    # Check for optional "http://" protocol header
+    # (http)://(demo.project-open.net/intranet/projects/index?var=value&var=value)
+    if {[regexp -nocase {^([a-z]):(\/*)(.*)$} $string match proto slashes string]} {
+	ns_log Notice "util_exploit_url_p: Found a protocol string: '$proto'"
+    } else {
+	ns_log Notice "util_exploit_url_p: Did not find an optional protocol"
+    }
+
+    # Check for optional "demo.project-open.net" host name
+    # (demo.project-open.net)/intranet/projects/index?var=value&var=value
+    if {[regexp -nocase {^([a-z0-9_\.\-]):(.*)$} $string match host string]} {
+	ns_log Notice "util_exploit_url_p: Found a host name: '$host'"
+    } else {
+	ns_log Notice "util_exploit_url_p: Did not find an optional host name"
+    }
+
+    # Check for URL with only a path and no variables
+    if {[regexp -nocase {^([\/a-z0-9_\.\-])+$} $string match path]} {
+	# No variables to be checked...
+	return 0
+    }
+
+    # Check for page path
+    # (/intranet/projects/index)?(var=value&var=value)
+    if {[regexp -nocase {^([\/a-z0-9_\.\-])+\?(.*)$} $string match path string]} {
+	ns_log Notice "util_exploit_url_p: Found a valid path: '$path'"
+    } else {
+	ns_log Notice "util_exploit_url_p: Did not find a valid path in: '$string'"
+	return 1
+    }
+
+    # The rest are var=value pairs now, separated by a "&"
+    set tuples [split $string "&"]
+    ns_log Notice "util_exploit_url_p: Found variable pairs: '$tuples'"
+
+    foreach tuple $tuples {
+	ns_log Notice "util_exploit_url_p: Checking tuple: '$tuple'"
+	if {[regexp -nocase {^([a-z0-9_\.\-]+)=(.*)$} $tuple match var value]} {
+	    ns_log Notice "util_exploit_url_p: Found a valid var=value pair: '$var'='$value'"
+	} else {
+
+	    # Try to decode URL and try again
+	    set tuple [ns_urldecode $tuple]
+	    
+	    if {[regexp -nocase {^([a-z0-9_\.\-]+)=(.*)$} $tuple match var value]} {
+		ns_log Notice "util_exploit_url_p: Found a valid var=value pair: '$var'='$value'"
+	    } else {
+		ns_log Notice "util_exploit_url_p: Found invalid var=value pair: '$tuple'"
+		return 1
+	    }
+	}
+    }
+
+    # Apparent NOT an exploit URL
+    return 0
+}
+
 
 ad_proc -public util_complete_url_p {{} string} {
   Determine whether string is a complete URL, i.e.
@@ -2384,6 +2453,14 @@ ad_proc -public util_current_location {{}} {
     @author Lars Pind (lars@collaboraid.biz)
     @author Peter Marklund
 } {
+    # Did somebody set a specific redirection address?
+    # This may be useful with funky HTTPS/redirection settings.
+    set current_location [parameter::get_from_package_key -package_key "intranet-core" -parameter UtilCurrentLocationRedirect -default ""]
+    if {"" != $current_location} {
+        return $current_location
+    }
+
+    # Default logic
     set default_port(http) 80
     set default_port(https) 443
     
@@ -2400,7 +2477,7 @@ ad_proc -public util_current_location {{}} {
     # suppress the configured http port when server is behind a proxy, to keep connection behind proxy
     # fraber 101118: looking for parameter in the wrong package...
 #    set suppress_port [parameter::get -package_key "acs-tcl" -parameter SuppressHttpPort -default 0]
-    set suppress_port [parameter::get_from_package_key -package_key "acs-tcl" -parameter "SuppressHttpPort" -default "0"]
+    set suppress_port [parameter::get_from_package_key -package_key "acs-tcl" -parameter "SuppressHttpPort" -default 1]
 
     if { $suppress_port } {
         ns_log Debug "util_current_location: suppressing http port $Host_port"
@@ -4614,6 +4691,8 @@ ad_proc util::external_url_p { url } {
     HTTP or HTTPS port number added or removed from current host name    
    or another hostname that the host responds to (from host_node_map)
 } {
+    return 0
+
     set locations_list [security::locations]
     # there may be as many as 3 valid full urls from one hostname
     set external_url_p [util_complete_url_p $url]
