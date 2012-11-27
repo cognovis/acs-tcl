@@ -333,6 +333,10 @@ ad_proc -deprecated ad_table {
 	} else {
 	    append Theader "<tr $Theader_row_extra>\n"
 	}
+
+	# fixing /acs-admin/apm/version-parameters
+	set scope ""
+
 	foreach Ti $Tcolumn_list {
 	    set Tcol [lindex $Tdatadef $Ti]
 	    if { ( [ns_set find $selection [lindex $Tcol 0]] < 0
@@ -453,6 +457,9 @@ ad_proc -deprecated ad_table {
 
 	    append Thtml [subst $Trow_code]
 	    
+	    # fixing /acs-admin/apm/version-parameters
+	    set scope ""
+
 	    foreach Ti $Tcolumn_list {
 		set Tcol [lindex $Tdatadef $Ti]
 		# If we got some special formatting code we handle it
