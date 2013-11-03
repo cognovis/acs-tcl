@@ -1853,7 +1853,7 @@ ad_proc -public ad_return_top_of_page {first_part_of_page {content_type text/htm
     }
 }
 
-ad_proc -public ad_apply {func arglist} {
+ad_proc -public apply {func arglist} {
     Evaluates the first argument with ARGLIST as its arguments, in the
     environment of its caller. Analogous to the Lisp function of the same name.
 } {
@@ -1870,7 +1870,7 @@ ad_proc -public safe_eval args {
 	    return -code error "Unsafe argument to safe_eval: $arg"
 	}
     }
-    return [ad_apply uplevel $args]
+    return [apply uplevel $args]
 }
 
 ad_proc -public lmap {list proc_name} {
@@ -2301,7 +2301,7 @@ ad_proc -public ad_returnredirect {
     }
 
     if { [util_exploit_url_p $target_url] } {
-	error "Redirection to invalid URL: '[ns_quotehtml $target_url]'"
+        error "Redirection to invalid URL: '[ns_quotehtml $target_url]'"
     }
 
     if { [util_exploit_url_p $target_url] } {
@@ -2458,7 +2458,7 @@ ad_proc -public util_exploit_url_p {{} string} {
 	    # Try to decode URL and try again
 	    set tuple [ns_urldecode $tuple]
 	    
-	    if {[regexp -nocase {^([a-z0-9_\.\-]+)=(.*)$} $tuple match var value]} {
+	    if {[regexp -nocase {^([a-z0-9_\.\-\:]+)=(.*)$} $tuple match var value]} {
 		ns_log Notice "util_exploit_url_p: Found a valid var=value pair: '$var'='$value'"
 	    } else {
 		ns_log Notice "util_exploit_url_p: Found invalid var=value pair: '$tuple'"
@@ -2603,7 +2603,8 @@ ad_proc -public util_current_location {{}} {
     if { $port ne "" && $port ne $default_port($proto) } {
         return "$proto://$hostname:$port"
     } else {
-        return "$proto://$hostname"
+	return [ad_url]
+        #return "$proto://$hostname"
     }
 }
 

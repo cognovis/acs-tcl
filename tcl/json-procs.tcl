@@ -393,7 +393,7 @@ ad_proc -private util::json::object2json {objectVal} {
         if { $val eq "" } {
             lappend values "\"$key\":\"\""
         } else {
-            lappend values "\"$key\":[util::json::gen_inner $val]"
+            lappend values "\"$key\": [util::json::gen_inner $val]"
         }
     }
     return "\{[join $values ,]\}"

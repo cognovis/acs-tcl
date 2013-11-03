@@ -35,5 +35,7 @@ if { [parameter::get -package_id [ad_acs_kernel_id] -parameter RegisterRestrictE
     ad_register_filter preauth PUT "${url}*" ad_restrict_entire_server_to_registered_users
     ad_register_filter preauth DELETE "${url}*" ad_restrict_entire_server_to_registered_users
     ad_register_filter preauth HEAD "${url}*" ad_restrict_entire_server_to_registered_users
+    ad_register_filter preauth PUT "${url}*" ad_restrict_entire_server_to_registered_users
+    ad_register_filter preauth DELETE "${url}*" ad_restrict_entire_server_to_registered_users
   }
 }

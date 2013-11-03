@@ -487,12 +487,8 @@ ad_proc -private acs_user::get_from_user_id_not_cached { user_id } {
 
     @author Peter Marklund
 } {
-    if {[catch {
-	db_1row select_user_info {*SQL*} -column_array row
-    } err_msg]} {
-	ns_log Error "acs_user::get_from_user_id_not_cached $user_id: Error getting information about user: $err_msg"
-    }
-
+    db_1row select_user_info {*SQL*} -column_array row
+    
     return [array get row]
 }
 
