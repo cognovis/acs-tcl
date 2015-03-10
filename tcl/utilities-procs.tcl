@@ -2412,14 +2412,14 @@ ad_proc -public util_exploit_url_p {{} string} {
     return 0
 
     set string [ns_urldecode $string]
-    ns_log Notice "util_exploit_url_p: Checking URL for exploit attemts: '$string'"
+    ns_log Debug "util_exploit_url_p: Checking URL for exploit attemts: '$string'"
 
     # Check for optional "http://" protocol header
     # (http)://(demo.project-open.net/intranet/projects/index?var=value&var=value)
     if {[regexp -nocase {^([a-z]):(\/*)(.*)$} $string match proto slashes string]} {
 	ns_log Notice "util_exploit_url_p: Found a protocol string: '$proto'"
     } else {
-	ns_log Notice "util_exploit_url_p: Did not find an optional protocol"
+	ns_log Debug "util_exploit_url_p: Did not find an optional protocol"
     }
 
     # Check for optional "demo.project-open.net" host name
@@ -2427,7 +2427,7 @@ ad_proc -public util_exploit_url_p {{} string} {
     if {[regexp -nocase {^([a-z0-9_\.\-]):(.*)$} $string match host string]} {
 	ns_log Notice "util_exploit_url_p: Found a host name: '$host'"
     } else {
-	ns_log Notice "util_exploit_url_p: Did not find an optional host name"
+	ns_log Debug "util_exploit_url_p: Did not find an optional host name"
     }
 
     # Check for URL with only a path and no variables
@@ -2441,27 +2441,27 @@ ad_proc -public util_exploit_url_p {{} string} {
     if {[regexp -nocase {^([\/a-z0-9_\.\-])+\?(.*)$} $string match path string]} {
 	ns_log Notice "util_exploit_url_p: Found a valid path: '$path'"
     } else {
-	ns_log Notice "util_exploit_url_p: Did not find a valid path in: '$string'"
+	ns_log Debug "util_exploit_url_p: Did not find a valid path in: '$string'"
 	return 1
     }
 
     # The rest are var=value pairs now, separated by a "&"
     set tuples [split $string "&"]
-    ns_log Notice "util_exploit_url_p: Found variable pairs: '$tuples'"
+    ns_log Debug "util_exploit_url_p: Found variable pairs: '$tuples'"
 
     foreach tuple $tuples {
-	ns_log Notice "util_exploit_url_p: Checking tuple: '$tuple'"
+	ns_log Debug "util_exploit_url_p: Checking tuple: '$tuple'"
 	if {[regexp -nocase {^([a-z0-9_\.\-]+)=(.*)$} $tuple match var value]} {
-	    ns_log Notice "util_exploit_url_p: Found a valid var=value pair: '$var'='$value'"
+	    ns_log Debug "util_exploit_url_p: Found a valid var=value pair: '$var'='$value'"
 	} else {
 
 	    # Try to decode URL and try again
 	    set tuple [ns_urldecode $tuple]
 	    
 	    if {[regexp -nocase {^([a-z0-9_\.\-]+)=(.*)$} $tuple match var value]} {
-		ns_log Notice "util_exploit_url_p: Found a valid var=value pair: '$var'='$value'"
+		ns_log Debug "util_exploit_url_p: Found a valid var=value pair: '$var'='$value'"
 	    } else {
-		ns_log Notice "util_exploit_url_p: Found invalid var=value pair: '$tuple'"
+		ns_log Debug "util_exploit_url_p: Found invalid var=value pair: '$tuple'"
 		return 1
 	    }
 	}
@@ -2583,7 +2583,7 @@ ad_proc -public util_current_location {{}} {
         set port ""
     }
 
-    ns_log Notice "util_current_location: suppress_port=$suppress_port, port=$port, Host_port=$Host_port"
+    ns_log Debug "util_current_location: suppress_port=$suppress_port, port=$port, Host_port=$Host_port"
 
     # Server config location
     if { ![regexp {^([a-z]+://)?([^:]+)(:[0-9]*)?$} [ad_conn location] match location_proto location_hostname location_port] } {
@@ -3820,7 +3820,7 @@ ad_proc util_background_exec {
     ns_log Debug "util_background_exec: Released mutex"
 
     if { $running_p } {
-        ns_log Notice "util_background_exec: $name is already running, exiting"
+        ns_log Debug "util_background_exec: $name is already running, exiting"
         return
     }
 
