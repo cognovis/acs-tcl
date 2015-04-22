@@ -4807,3 +4807,9 @@ ad_proc util::external_url_p { url } {
     }
     return $external_url_p
 }
+
+ad_proc ad_tmpdir {} {
+    conveniece function to return the tmp directory
+} {
+    return [ns_config ns/parameters tmpdir]
+}

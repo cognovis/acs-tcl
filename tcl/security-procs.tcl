@@ -1813,3 +1813,23 @@ ad_proc -public security::locations {} {
     }
     return  $locations
 }
+
+if {[ns_info name] ne "NaviServer"} {
+    #
+    # compatibility with NaviServer, which allows global and per-server
+    # defined drivers.
+    #
+    ad_proc -public ns_driversection {
+        {-driver "nssock"}
+        {-server ""}
+    } {
+        Return the section name in the config file containing configuration information about the
+        network connection.
+        @param driver (e.g. nssock)
+        @param server symobolic server name
+        @return name of section of the drive in the config file
+    } {
+        if {$server eq ""} {set server [ns_info server]}
+        return "ns/server/$server/module/$driver"
+    }
+}
